@@ -10,6 +10,12 @@ Parser::terminal_symbol_t  Parser::lexer( char c_ ) const
         case '+':  return terminal_symbol_t::TS_PLUS;
         case '-':  return terminal_symbol_t::TS_MINUS;
         case ' ':  return terminal_symbol_t::TS_WS;
+        case '^':  return terminal_symbol_t::TS_POWER;
+        case '%':  return terminal_symbol_t::TS_PERCENT;
+        case '*':  return terminal_symbol_t::TS_MULT;
+        case '/':  return terminal_symbol_t::TS_DIV;
+        case '(':  return terminal_symbol_t::TS_OPEN;
+        case ')':  return terminal_symbol_t::TS_CLOSE;
         case   9:  return terminal_symbol_t::TS_TAB;
         case '0':  return terminal_symbol_t::TS_ZERO;
         case '1':
@@ -127,7 +133,30 @@ bool Parser::expression()
             // Stores the "+" token in the list.
             m_tk_list.emplace_back( Token( "+", Token::token_t::OPERATOR ) );
         }
-        else break;
+        else if ( accept( Parser::terminal_symbol_t::TS_MULT ) )
+        {
+            // Stores the "*" token in the list.
+            m_tk_list.emplace_back( Token( "*", Token::token_t::OPERATOR ) );
+        }
+         else if ( accept( Parser::terminal_symbol_t::TS_DIV ) )
+        {
+            // Stores the "/" token in the list.
+            m_tk_list.emplace_back( Token( "/", Token::token_t::OPERATOR ) );
+        }
+        else if( accept(Parser::terminal_symbol_t::TS_POWER)){
+            m_tk_list.emplace_back( Token( "^", Token::token_t::OPERATOR ));
+        }
+        else if( accept(Parser::terminal_symbol_t::TS_PERCENT)){
+            m_tk_list.emplace_back( Token( "%", Token::token_t::OPERATOR ));
+        }
+        else {
+            if(peek(Parser::terminal_symbol_t::TS_CLOSE))
+                return ResultType(ResultType::OK);
+            else if(peek(Parser::terminal_symbol_t::TS_WS) or peek(Parser::terminal_symbol_t::TS_TAB))
+                return ResultType(ResultType::MISSING_TERM, std::distance(expr.begin(), begin_term) + 1); // Erro, termo faltante 
+            else
+                return ResultType(ResultType::EXTRANEOUS_SYMBOL, std::distance(expr.begin(), begin_term) + 1); // Erro, simbolo não aceito 
+        }
 
         // After a '+' or '-' we expect a valid term, otherwise we have a missing term.
         // However, we may get a "false" term() if we got a number out of range.
