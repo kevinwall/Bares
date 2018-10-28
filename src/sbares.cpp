@@ -16,6 +16,7 @@
 #include <cmath>     // pow
 #include <stdexcept> // std::runtime_error
 #include <vector>    // std::vector
+#include "../include/sbares.h"
 
 //=== Aliases
 using value_type = long int; //!< Type we operate on.
