@@ -45,6 +45,7 @@ class Parser
                     ILL_FORMED_INTEGER,
                     MISSING_TERM,
                     EXTRANEOUS_SYMBOL,
+                    MISSING_CLOSE,
                     INTEGER_OUT_OF_RANGE
             };
 
@@ -115,10 +116,10 @@ class Parser
         bool peek( terminal_symbol_t c_ ) const;
         
         //=== NTS methods.
-        bool expression();
-        bool term();
-        bool integer();
-        bool natural_number();
+        ResultType expression();
+        ResultType term();
+        ResultType integer();
+        ResultType natural_number();
         bool digit_excl_zero();
         bool digit();
 };
