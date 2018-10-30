@@ -16,7 +16,7 @@
 
 // Simple helper functions that identify the incoming symbol.
 bool is_operator( Token s )
-{   return s.type == Token::token_t::OPERAND;   }
+{   return s.type == Token::token_t::OPERATOR;   }
 
 bool is_operand( Token s )
 {   return s.type == Token::token_t::OPERAND ;   }
