@@ -15,31 +15,8 @@
 
 
 // Simple helper functions that identify the incoming symbol.
-bool is_operator( symbol s )
-{
-    return std::string("*^/%+-").find( s ) != std::string::npos;
-
-    /*
-    std::string  target("*^/%+-");
-
-    auto result = target.find( s );
-
-    if ( result == std::string::npos ) return false;
-    else return true;
-    */
-
-    /*
-
-    switch( s )
-    {
-        case '*':
-        case '/':
-            ...
-        return true;
-        default: return false;
-    }
-    */
-}
+bool is_operator( Token s )
+{   return s.type == Token::token_t::OPERAND;   }
 
 bool is_operand( Token s )
 {   return s.type == Token::token_t::OPERAND ;   }
@@ -67,7 +44,7 @@ value_type evaluate_postfix( std::vector<Token> & );
 /// Returns the precedence value (number) associated with an operator.
 short get_precedence( Token op )
 {
-    switch( op.type )
+    switch( op.value )
     {
         case '^' : return 3;
         case '*' :
