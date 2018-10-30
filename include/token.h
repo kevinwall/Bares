@@ -17,9 +17,9 @@ struct Token
         enum class token_t : int
         {
             OPERAND = 0, //!< A type representing numbers.
-            OPERATOR,     //!< A type representing  "+", "-".
-            OP_SCOPE,
-            ED_SCOPE
+            OPERATOR,    //!< A type representing  "+", "-", "*", "^", "/".
+            OP_SCOPE,    //!< A type representing  "(".
+            ED_SCOPE     //!< A type representing  ")".
         };
 
         std::string value; //!< The token value as a string.
@@ -34,7 +34,7 @@ struct Token
         /// Just to help us debug the code.
         friend std::ostream & operator<<( std::ostream& os_, const Token & t_ )
         {
-            std::string types[] = { "OPERAND", "OPERATOR" };
+            std::string types[] = { "OPERAND", "OPERATOR", "OP_SCOPE", "ED_SCOPE" };
 
             os_ << "<" << t_.value << "," << types[(int)(t_.type)] << ">";
 

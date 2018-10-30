@@ -9,13 +9,11 @@ Parser::terminal_symbol_t  Parser::lexer( char c_ ) const
     {
         case '+':  return terminal_symbol_t::TS_PLUS;
         case '-':  return terminal_symbol_t::TS_MINUS;
-        case ' ':  return terminal_symbol_t::TS_WS;
-        case '^':  return terminal_symbol_t::TS_POWER;
-        case '%':  return terminal_symbol_t::TS_PERCENT;
-        case '*':  return terminal_symbol_t::TS_MULT;
         case '/':  return terminal_symbol_t::TS_DIV;
-        case '(':  return terminal_symbol_t::TS_OPEN;
-        case ')':  return terminal_symbol_t::TS_CLOSE;
+		case '*':  return terminal_symbol_t::TS_MULT;
+		case '^':  return terminal_symbol_t::TS_POWER;
+		case '%':  return terminal_symbol_t::TS_MOD;
+        case ' ':  return terminal_symbol_t::TS_WS;
         case   9:  return terminal_symbol_t::TS_TAB;
         case '0':  return terminal_symbol_t::TS_ZERO;
         case '1':
@@ -27,6 +25,8 @@ Parser::terminal_symbol_t  Parser::lexer( char c_ ) const
         case '7':
         case '8':
         case '9':  return terminal_symbol_t::TS_NON_ZERO_DIGIT;
+        case '(':  return terminal_symbol_t::TS_OP;
+        case ')':  return terminal_symbol_t::TS_ED;
         case '\0': return terminal_symbol_t::TS_EOS; // end of string: the $ terminal symbol
     }
     return terminal_symbol_t::TS_INVALID;
@@ -104,6 +104,7 @@ void Parser::skip_ws( void )
 }
 
 
+
 //=== Non Terminal Symbols (NTS) methods.
 
 /// Validates (i.e. returns true or false) and consumes an **expression** from the input expression string.
@@ -115,9 +116,9 @@ void Parser::skip_ws( void )
  * ```
  * An expression might be just a term or one or more terms with '+'/'-' between them.
  */
-Parser::ResultType Parser::expression()
+bool Parser::expression()
 {
-    /*term();
+    term();
     // Process terms
     while( m_result.type == ResultType::OK )
     {
@@ -132,99 +133,39 @@ Parser::ResultType Parser::expression()
             // Stores the "+" token in the list.
             m_tk_list.emplace_back( Token( "+", Token::token_t::OPERATOR ) );
         }
-        else if ( accept( Parser::terminal_symbol_t::TS_MULT ) )
+        else if( accept(Parser::terminal_symbol_t::TS_DIV) )
         {
-            // Stores the "*" token in the list.
-            m_tk_list.emplace_back( Token( "*", Token::token_t::OPERATOR ) );
+        	// Stores the "/" token in the list.
+            m_tk_list.emplace_back( Token( "/", Token::token_t::OPERATOR ) );	
         }
-         else if ( accept( Parser::terminal_symbol_t::TS_DIV ) )
+        else if( accept(Parser::terminal_symbol_t::TS_MULT) )
         {
-            // Stores the "/" token in the list.
-            m_tk_list.emplace_back( Token( "/", Token::token_t::OPERATOR ) );
+        	// Stores the "*" token in the list.
+            m_tk_list.emplace_back( Token( "*", Token::token_t::OPERATOR ) );	
         }
-        else if( accept(Parser::terminal_symbol_t::TS_POWER)){
-            m_tk_list.emplace_back( Token( "^", Token::token_t::OPERATOR ));
+        else if( accept(Parser::terminal_symbol_t::TS_POWER) )
+        {
+        	// Stores the "^" token in the list.
+            m_tk_list.emplace_back( Token( "^", Token::token_t::OPERATOR ) );	
         }
-        else if( accept(Parser::terminal_symbol_t::TS_PERCENT)){
-            m_tk_list.emplace_back( Token( "%", Token::token_t::OPERATOR ));
+        else if( accept(Parser::terminal_symbol_t::TS_MOD) )
+        {
+        	// Stores the "%" token in the list.
+            m_tk_list.emplace_back( Token( "%", Token::token_t::OPERATOR ) );	
         }
-        
-
+        else break;
 
         // After a '+' or '-' we expect a valid term, otherwise we have a missing term.
         // However, we may get a "false" term() if we got a number out of range.
         // So, we only change the error code if this is not that case (out of range).
-       /* if ( not term() and m_result.type == ResultType::ILL_FORMED_INTEGER)
+        if ( not term() and m_result.type == ResultType::ILL_FORMED_INTEGER )
         {
             // Make the error more specific.
             m_result.type = ResultType::MISSING_TERM;
         }
     }
 
-    return m_result.type == ResultType::OK;*/
-    ResultType result( ResultType::OK );
-    
-    skip_ws();
-    
-    result = term();
-    // tentamos processar um termo.
-    if(result.type != ResultType::OK)
-        return result;
-    skip_ws();
-    if(end_input())
-        return result;
-    // iterador usado dentro do while para guardar coluna do erro
-    std::string::iterator begin_term;
-    // enquanto der certo, tente processar outros termos.
-    while(!end_input())
-    {
-        skip_ws();
-        begin_term = m_it_curr_symb;
-        if(accept(Parser::terminal_symbol_t::TS_PLUS)){
-            std::string token_str = "+";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else if(accept(Parser::terminal_symbol_t::TS_MINUS)){
-            std::string token_str = "-";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else if(accept(Parser::terminal_symbol_t::TS_MULT)){
-            std::string token_str = "*";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else if(accept(Parser::terminal_symbol_t::TS_DIV)){
-            std::string token_str = "/";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else if(accept(Parser::terminal_symbol_t::TS_PERCENT)){
-            std::string token_str = "%";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else if(accept(Parser::terminal_symbol_t::TS_POWER)){
-            std::string token_str = "^";
-            m_tk_list.push_back( Token( token_str, Token::token_t::OPERATOR ) );
-        }
-        else
-        {
-            if(peek(Parser::terminal_symbol_t::TS_CLOSE))
-                return ResultType(ResultType::OK);
-            else if(peek(Parser::terminal_symbol_t::TS_WS) or peek(Parser::terminal_symbol_t::TS_TAB))
-                return ResultType(ResultType::MISSING_TERM, std::distance(m_expr.begin(), begin_term) + 1); // Erro, termo faltante 
-            else
-                return ResultType(ResultType::EXTRANEOUS_SYMBOL, std::distance(m_expr.begin(), begin_term) + 1); // Erro, simbolo não aceito 
-        }
-        
-        skip_ws();
-        begin_term = m_it_curr_symb;
-        if(end_input())
-            return ResultType(ResultType::MISSING_TERM, std::distance(m_expr.begin(), begin_term) + 1);
-        result = term();
-        if( result.type != ResultType::OK)
-            return result;
-    }
-    
-    return result;
-
+    return m_result.type == ResultType::OK;
 }
 
 /// Validates (i.e. returns true or false) and consumes a **term** from the input expression string.
@@ -238,13 +179,13 @@ Parser::ResultType Parser::expression()
  *
  * @return true if a term has been successfuly parsed from the input; false otherwise.
  */
-Parser::ResultType Parser::term()
+bool Parser::term()
 {
-    /*skip_ws();
+    skip_ws();
     // Guarda o início do termo no input, para possíveis mensagens de erro.
     auto begin_token( m_it_curr_symb );
     // Vamos tokenizar o inteiro, se ele for bem formado.
-    if ( integer() )
+    if ( integer(begin_token) )
     {
         // Copiar a substring correspondente para uma variável string.
         std::string token_str;
@@ -280,6 +221,25 @@ Parser::ResultType Parser::term()
             m_tk_list.emplace_back( Token( token_str, Token::token_t::OPERAND ) );
         }
     }
+    else if( is_opscope() )
+    {
+    	std::string token_str;
+        std::copy( begin_token, m_it_curr_symb, std::back_inserter( token_str ) );
+
+    	m_tk_list.emplace_back( Token(token_str, Token::token_t::OP_SCOPE));
+
+    	expression();
+
+    	if(accept(terminal_symbol_t::TS_ED))
+    	{
+    		m_tk_list.emplace_back( Token(")", Token::token_t::ED_SCOPE));
+    	}
+    	else
+    	{
+    		m_result =  ResultType( ResultType::MISSING_TERM, 
+                std::distance( m_expr.begin(), m_it_curr_symb ) ) ;
+    	}
+    }
     else
     {
         // Create the corresponding error.
@@ -287,37 +247,26 @@ Parser::ResultType Parser::term()
                 std::distance( m_expr.begin(), m_it_curr_symb ) ) ;
     }
     return m_result.type == ResultType::OK;
-    */
-    ResultType result( ResultType::OK );
-    skip_ws();
-    
-    // Guarda o início do termo no input, para possíveis mensagens de erro.
-    auto begin_term(m_it_curr_symb);
-    
-    if( accept( Parser::terminal_symbol_t::TS_OPEN) ){
-        std::string token_str = "(";
-        m_tk_list.push_back( Token( token_str, Token::token_t::OP_SCOPE ) );
-        
-        skip_ws();
-        result = expression();
-        if(result.type != ResultType::OK)
-            return result;
-        
-        skip_ws();
-        if( accept( Parser::terminal_symbol_t::TS_CLOSE) ){
-            std::string token_str = ")";
-            m_tk_list.push_back( Token( token_str, Token::token_t::ED_SCOPE) );
-        } else{
-            result = ResultType(ResultType::MISSING_CLOSE, distance(m_expr.begin(), m_it_curr_symb) + 1);
-        }
-        
-        return result;
-        
-    }
-    
-    // Processe um inteiro.
-    result = integer();
-    return result;
+}
+
+bool Parser::is_opscope()
+{
+	if(accept(terminal_symbol_t::TS_OP))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool Parser::is_edscope()
+{
+	if(accept(terminal_symbol_t::TS_ED))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 /// Validates (i.e. returns true or false) and consumes an **integer** from the input expression string.
@@ -331,46 +280,29 @@ Parser::ResultType Parser::term()
  *
  * @return true if an integer has been successfuly parsed from the input; false otherwise.
  */
-Parser::ResultType Parser::integer()
+bool Parser::integer(std::string::iterator &begin_token)
 {
     // Se aceitarmos um zero, então o inteiro acabou aqui.
     if ( accept( terminal_symbol_t::TS_ZERO ) )
-        return ResultType( ResultType::OK); // OK
+        return true; // OK
 
-    bool negative = false;
-
-    while( accept( terminal_symbol_t::TS_MINUS)){negative = !negative;}
-
-    auto first_token( m_it_curr_symb);
-
-    if(negative == true)
-        --first_token;
-        auto result = natural_number();
-
-    if(result.type != ResultType::OK){
-        return result;
-    }
-
-    std::string token_str;
-    std::copy( first_token, m_it_curr_symb,std::back_inserter( token_str));
-
-    input_int_type token_int;
-    try{ token_int = stoll(token_str);}
-    catch( const std::invalid_argument & e)
-    {
-        return ResultType( ResultType::ILL_FORMED_INTEGER, std::distance( m_expr.begin(), first_token) +1);
-    }
-
-    if( token_int< std::numeric_limits< required_int_type> :: min() or 
-        token_int > std::numeric_limits< required_int_type>::max())
-    {
-        return ResultType( ResultType::INTEGER_OUT_OF_RANGE, std::distance( m_expr.begin(), first_token) +1);
-    }
-
-    m_tk_list.push_back( Token( token_str,Token::token_t::OPERAND));
     // Vamos tentar aceitar o '-'.
-    
-    return result;
+    int minus{0};
+    while(accept( terminal_symbol_t::TS_MINUS ))
+    {
+    	minus++;
+    }
+   
+   	if((minus%2) != 0)
+   	{
+   		begin_token = m_it_curr_symb - 1;
+   	}
+   	else
+   	{
+   		begin_token = m_it_curr_symb;
+   	}
+
+    return  natural_number();
 }
 
 /// Validates (i.e. returns true or false) and consumes a **natural number** from the input string.
@@ -383,16 +315,16 @@ Parser::ResultType Parser::integer()
  *
  * @return true if a natural number has been successfuly parsed from the input; false otherwise.
  */
-Parser::ResultType Parser::natural_number()
+bool Parser::natural_number()
 {
     // Tem que vir um número que não seja zero! (de acordo com a definição).
     if ( not digit_excl_zero() )
-        return ResultType( ResultType::ILL_FORMED_INTEGER , std::distance( m_expr.begin(), m_it_curr_symb ) + 1 );; // FAILED HERE.
+        return false; // FAILED HERE.
 
     // Cosumir os demais dígitos, se existirem...
     while( digit() ) /* empty */ ;
 
-        return ResultType( ResultType::OK ); // OK
+    return true; // OK
 }
 
 /// Validates (i.e. returns true or false) and consumes a **non-zero digit** from the input expression string.
@@ -465,9 +397,8 @@ Parser::ResultType  Parser::parse( std::string e_ )
     }
     else
     {
-        m_result = expression();
         // Trying to validate an expression.
-        if ( m_result.type == ResultType::OK  )
+        if ( expression() )
         {
             // At this point there should not be any non-whitespace character in the input expression.
             skip_ws(); // Anyway, let us clear any remaining 'whitespaces'.

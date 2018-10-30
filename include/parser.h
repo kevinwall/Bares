@@ -45,7 +45,6 @@ class Parser
                     ILL_FORMED_INTEGER,
                     MISSING_TERM,
                     EXTRANEOUS_SYMBOL,
-                    MISSING_CLOSE,
                     INTEGER_OUT_OF_RANGE
             };
 
@@ -85,18 +84,18 @@ class Parser
         enum class terminal_symbol_t{  // The symbols:-
             TS_PLUS,	        //!< code for "+"
             TS_MINUS,	        //!< code for "-"
+            TS_DIV,             //!< code for "/"
+            TS_MULT,            //!< code for "*"
+            TS_POWER,           //!< code for "^"
+            TS_MOD,             //!< code for "%"
             TS_ZERO,            //!< code for "0"
             TS_NON_ZERO_DIGIT,  //!< code for digits, from "1" to "9"
             TS_WS,              //!< code for a white-space
-            TS_POWER,
-            TS_PERCENT,
-            TS_MULT,
-            TS_DIV,
-            TS_OPEN,
-            TS_CLOSE,              
             TS_TAB,             //!< code for tab
             TS_EOS,             //!< code for "End Of String"
-            TS_INVALID	        //!< invalid token
+            TS_INVALID,	        //!< invalid token
+            TS_OP,              //!< code for "("
+            TS_ED               //!< code for ")"
         };
 
         //==== Private members.
@@ -113,13 +112,16 @@ class Parser
         //bool expect( terminal_symbol_t c_ );        // Skips any WS/Tab and tries to accept the requested symbol.
         void skip_ws( void );                    // Skips any WS/Tab ans stops at the next character.
         bool end_input( void ) const;            // Checks whether we reached the end of the expression string.
-        bool peek( terminal_symbol_t c_ ) const;
-        
+
+        bool is_opscope();
+        bool is_edscope();
+
+
         //=== NTS methods.
-        ResultType expression();
-        ResultType term();
-        ResultType integer();
-        ResultType natural_number();
+        bool expression();
+        bool term();
+        bool integer(std::string::iterator &begin_token);
+        bool natural_number();
         bool digit_excl_zero();
         bool digit();
 };
