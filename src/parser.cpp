@@ -104,7 +104,6 @@ void Parser::skip_ws( void )
 }
 
 
-
 //=== Non Terminal Symbols (NTS) methods.
 
 /// Validates (i.e. returns true or false) and consumes an **expression** from the input expression string.
@@ -149,19 +148,26 @@ bool Parser::expression()
         else if( accept(Parser::terminal_symbol_t::TS_PERCENT)){
             m_tk_list.emplace_back( Token( "%", Token::token_t::OPERATOR ));
         }
-        else {
+        else if(accept(Parser::terminal_symbol_t::TS_CLOSE))
+        {
             if(peek(Parser::terminal_symbol_t::TS_CLOSE))
-                return ResultType(ResultType::OK);
+            {
+                m_result = ResultType(ResultType::OK);
+            }
             else if(peek(Parser::terminal_symbol_t::TS_WS) or peek(Parser::terminal_symbol_t::TS_TAB))
-                return ResultType(ResultType::MISSING_TERM, std::distance(expr.begin(), begin_term) + 1); // Erro, termo faltante 
+            {
+                m_result= ResultType(ResultType::MISSING_TERM, std::distance(m_expr.begin(), m_it_curr_symb) + 1); // Erro, termo faltante 
+            }
             else
-                return ResultType(ResultType::EXTRANEOUS_SYMBOL, std::distance(expr.begin(), begin_term) + 1); // Erro, simbolo não aceito 
+            {
+                m_result = ResultType(ResultType::EXTRANEOUS_SYMBOL, std::distance(m_expr.begin(), m_it_curr_symb) + 1); // Erro, simbolo não aceito 
+            }
         }
 
         // After a '+' or '-' we expect a valid term, otherwise we have a missing term.
         // However, we may get a "false" term() if we got a number out of range.
         // So, we only change the error code if this is not that case (out of range).
-        if ( not term() and m_result.type == ResultType::ILL_FORMED_INTEGER )
+        if ( not term() and m_result.type == ResultType::ILL_FORMED_INTEGER)
         {
             // Make the error more specific.
             m_result.type = ResultType::MISSING_TERM;

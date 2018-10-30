@@ -87,6 +87,12 @@ class Parser
             TS_ZERO,            //!< code for "0"
             TS_NON_ZERO_DIGIT,  //!< code for digits, from "1" to "9"
             TS_WS,              //!< code for a white-space
+            TS_POWER,
+            TS_PERCENT,
+            TS_MULT,
+            TS_DIV,
+            TS_OPEN,
+            TS_CLOSE,              
             TS_TAB,             //!< code for tab
             TS_EOS,             //!< code for "End Of String"
             TS_INVALID	        //!< invalid token
@@ -106,7 +112,8 @@ class Parser
         //bool expect( terminal_symbol_t c_ );        // Skips any WS/Tab and tries to accept the requested symbol.
         void skip_ws( void );                    // Skips any WS/Tab ans stops at the next character.
         bool end_input( void ) const;            // Checks whether we reached the end of the expression string.
-
+        bool peek( terminal_symbol_t c_ ) const;
+        
         //=== NTS methods.
         bool expression();
         bool term();

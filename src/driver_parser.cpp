@@ -23,7 +23,7 @@ std::vector<std::string> expressions =
     "4 + ",
     "32a23",
     "43 + 54 -   ",
-    "1234567888889974232214433432 + 4"
+    "(3+5)-6"
 };
 
 void print_error_msg( const Parser::ResultType & result, std::string str )
