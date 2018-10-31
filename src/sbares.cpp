@@ -15,50 +15,54 @@
 
 
 // Simple helper functions that identify the incoming symbol.
-bool is_operator( Token s )
+bool is_operator( symbol s )
 {   return s.type == Token::token_t::OPERATOR;   }
 
-bool is_operand( Token s )
-{   return s.type == Token::token_t::OPERAND ;   }
+bool is_operand( symbol s )
+{   return s.type == symbol::token_t::OPERAND ;   }
 
-bool is_opening_scope( Token s )
+bool is_opening_scope( symbol s )
 { return s.type == Token::token_t::OP_SCOPE ; }
 
-bool is_closing_scope( Token s )
+bool is_closing_scope( symbol s )
 { return s.type == Token::token_t::ED_SCOPE ; }
 
 /// Check the operand's type of association.
-bool is_right_association( Token op )
+bool is_right_association( symbol op )
 { return op.value[0] == '^'; }
 
 /// Converts a expression in infix notation to a corresponding profix representation.
 std::string infix_to_postfix( std::string );
 
 /// Converts a char (1-digit operand) into an integer.
-value_type char2integer( char c )
-{ return c - '0'; }
+value_type char2integer( Token c )
+{
+    auto integer = std::stoll(c.value);
+    return integer; 
+}
 
 /// Change an infix expression into its corresponding postfix representation.
 value_type evaluate_postfix( std::vector<Token> & );
 
 /// Returns the precedence value (number) associated with an operator.
-short get_precedence( Token op )
+short get_precedence( symbol op )
 {
-    switch( op.value )
+    if( op.value.front() == '^' )
     {
-        case '^' : return 3;
-        case '*' :
-        case '/' :
-        case '%' : return 2;
-        case '+' :
-        case '-' : return 1;
-        case '(' : return 0;
-        default  : assert( false );  return -1;
+        return 3;
+    }else if( op.value.front() == '*' or op.value.front() == '/' or op.value.front() == '%'  ){
+        return 2;
+    }else if( op.value.front() == '+' or op.value.front() == '-'){
+        return 1;
+    }else if( op.value.front() == '('){
+        return 0;
     }
+
+    return -1;
 }
 
 /// Determines whether the first operator is >= than the second operator.
-bool has_higher_or_eq_precedence( std::string op1 , std::string op2 )
+bool has_higher_or_eq_precedence( symbol op1 , symbol op2 )
 {
     // pega os valores numericos correspondentes aas precedencias.
     int p_op1 = get_precedence( op1 );
@@ -82,9 +86,9 @@ bool has_higher_or_eq_precedence( std::string op1 , std::string op2 )
 }
 
 /// Execute the binary operator on two operands and return the result.
-value_type execute_operator( value_type v1, value_type v2, Token op )
+value_type execute_operator( value_type v1, value_type v2, symbol op )
 {
-    switch( op.type )
+    switch( op.value.front() )
     {
         case '^':  return pow( v1,v2 );
         case '*':  return v1*v2;
@@ -98,32 +102,31 @@ value_type execute_operator( value_type v1, value_type v2, Token op )
     }
 }
 
-int main( void )
+// int main( void )
+// {
+//     // A expression is a queue of sysmbols (chars).
+//     std::vector <std::vector< Token >> exps {} ;
+//     exps.push_back( Token("21",Token::token_t::OPERAND));
+//     exps.push_back( Token("+",Token::token_t::OPERATOR));
+//     exps.push_back( Token("14",Token::token_t::OPERAND));
+
+//     auto postfix = infix_to_postfix( exps );
+//     for ( const auto& e : exps )
+//     {   
+//         std::cout << ">>> Input (infix)    = " << e << "\n";
+//         std::cout << ">>> Output (postfix) = " << postfix << "\n";
+
+//         auto result = evaluate_postfix( postfix );
+//         std::cout << ">>> Result is: " << result << std::endl;
+//     }
+
+//     std::cout << "\n>>> Normal exiting...\n";
+//     return EXIT_SUCCESS;
+// }
+
+std::vector<Token> infix_to_postfix( std::vector< Token> infix )
 {
-    // A expression is a queue of sysmbols (chars).
-    std::vector< std::string > exps {
-        "4/(5^2)+(6^2^3)",
-        "1+ 3 * ( 4 + 8 * 3 ^7)",
-        "2*2*3",
-        "2^2^3" } ;
-
-    for ( const auto& e : exps )
-    {
-        auto postfix = infix_to_postfix( e );
-        std::cout << ">>> Input (infix)    = " << e << "\n";
-        std::cout << ">>> Output (postfix) = " << postfix << "\n";
-
-        auto result = evaluate_postfix( postfix );
-        std::cout << ">>> Result is: " << result << std::endl;
-    }
-
-    std::cout << "\n>>> Normal exiting...\n";
-    return EXIT_SUCCESS;
-}
-
-std::string infix_to_postfix( std::vector< Token> & infix )
-{
-    std::string postfix(""); // resultado da conversao.
+    std::vector<Token> postfix; // resultado da conversao.
     std::stack< Token > s; // pilha de ajuda na conversao.
 
     // Percorrer a entrada, para processar cada item/token/caractere
@@ -133,7 +136,7 @@ std::string infix_to_postfix( std::vector< Token> & infix )
         //std::cout << ">>> Processando o \'" << c << "\'\n";
         // Operando vai direto pra saida.
         if( is_operand( c ) )
-            postfix += c;
+            postfix.push_back(c);
         else if( is_opening_scope(c) )
             s.push( c ); // '(' entra na pilha de espera em cima de quem estiver por la.
         else if( is_closing_scope(c) )
@@ -141,7 +144,7 @@ std::string infix_to_postfix( std::vector< Token> & infix )
             // desempilhe ateh achar o escopo de abertura correspondente.
             while( not is_opening_scope( s.top() ) )
             {
-                postfix += s.top();
+                postfix.push_back(s.top());
                 s.pop();
             }
             s.pop(); // Lembre de descartar o '(' que estah no topo da pilha.
@@ -152,7 +155,7 @@ std::string infix_to_postfix( std::vector< Token> & infix )
             // em prioridade (com excecao da associacao direita-esquerda).
             while( not s.empty() and has_higher_or_eq_precedence( s.top(), c ) ) // s.top() >= c
             {
-                postfix += s.top();
+                postfix.push_back(s.top());
                 s.pop();
             }
 
@@ -169,14 +172,14 @@ std::string infix_to_postfix( std::vector< Token> & infix )
     // Lembre-se de descarregar as operacoes pendentes da pilha.
     while( not s.empty() )
     {
-        postfix += s.top();
+        postfix.push_back(s.top());
         s.pop();
     }
 
     return postfix;
 }
 
-value_type evaluate_postfix( std::string postfix )
+value_type evaluate_postfix( std::vector<Token> postfix )
 {
     std::stack< value_type > s;
 

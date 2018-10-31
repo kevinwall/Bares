@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../include/parser.h"
+#include "../include/sbares.h"
 
 /*
 std::vector<std::string> expressions =
@@ -97,13 +98,22 @@ int main(int argc, char const *argv[])
        // out << std::setfill('=') << std::setw(80) << "\n";
        // out << std::setfill(' ') << ">>> Parsing \"" << string << "\"\n";
         // Se deu pau, imprimir a mensagem adequada.
-        if ( result.type != Parser::ResultType::OK )
+        if ( result.type != Parser::ResultType::OK ){
             print_error_msg( result, out );
-       // else
-           // out << ">>> Expression SUCCESSFULLY parsed!\n";
+        }else{
+            std::vector<Token> lista = my_parser.get_tokens();
+            std::vector<Token> lista_postfixada = infix_to_postfix( lista );
+            value_type evaluate;
+            try{  evaluate = evaluate_postfix( lista_postfixada );
+
+            }catch(...){ 
+                out << "Divisão por zero! :(\n";
+            }
+            out << evaluate << std::endl;
+
+        }   
 
          // Recuperar a lista de tokens.
-        auto lista = my_parser.get_tokens();
 
         /*
         std::cout << ">>> Tokens: { ";
