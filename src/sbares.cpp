@@ -197,5 +197,10 @@ value_type evaluate_postfix( std::vector<Token> postfix )
         else assert( false );
     }
 
+    if(s.top() > 32767 or s.top() < -32768)
+    {
+        throw std::out_of_range( "divisao por zero" );
+    }
+
     return s.top();
 }

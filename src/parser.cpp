@@ -236,7 +236,7 @@ bool Parser::term()
     	}
     	else
     	{
-    		m_result =  ResultType( ResultType::MISSING_TERM, 
+    		m_result =  ResultType( ResultType::MISSING_ED_SCOPE, 
                 std::distance( m_expr.begin(), m_it_curr_symb ) ) ;
     	}
     }

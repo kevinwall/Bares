@@ -45,7 +45,8 @@ class Parser
                     ILL_FORMED_INTEGER,
                     MISSING_TERM,
                     EXTRANEOUS_SYMBOL,
-                    INTEGER_OUT_OF_RANGE
+                    INTEGER_OUT_OF_RANGE,
+                    MISSING_ED_SCOPE
             };
 
             //=== Members (public).
