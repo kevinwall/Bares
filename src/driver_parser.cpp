@@ -55,9 +55,15 @@ int main(int argc, char const *argv[])
 
     Parser my_parser; // Instancia um parser.
 
-    // Tentar analisar cada expressão da lista.
+    // Inicializa as stream que vão ler/escrever nos arquivos de entrada e saída respectivamente.
     std::ifstream oss(in);
     std::ofstream out(sai);
+
+    if(!oss.is_open() or !out.is_open())
+    {
+    	std::cout<<"Erro na abertura dos arquivos, por favor tente novamente com entradas válidas."<<std::endl;
+    	return 0;
+    }
 
     while( ! oss.eof() )
     {
@@ -104,6 +110,8 @@ int main(int argc, char const *argv[])
 
     oss.close();
     out.close();
+
+    std::cout<<"Expressões solucionadas e gravadas no arquivo "<<sai<<std::endl;
 
     return EXIT_SUCCESS;
 }
