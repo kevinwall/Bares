@@ -42,11 +42,11 @@ E _rejeita_ expressões como:
 
 Para compilar o projeto basta digitar o comando <br/>
 
-** make <br/>
+**make** <br/>
 
 Na pasta principal do repositório e para excutar basta digitar <br/>
 
-** ./bares arquivo_de_entrada arquivo_de_saída <br/>
+**./bares arquivo-de-entrada arquivo-de-saída**  <br/>
 
 Após isso, as soluções e erros se encontrarão no arquivo de saída.
 
