@@ -112,9 +112,9 @@ void Parser::skip_ws( void )
  *
  * Production rule is:
  * ```
- *  <expr> := <term>,{ ("+"|"-"),<term> };
+ *  <expr> := <term>,{ ("+"|"-"|"*"|"/"|"%"|"^"),<term> };
  * ```
- * An expression might be just a term or one or more terms with '+'/'-' between them.
+ * An expression might be just a term or one or more terms with '+'/'-'/'*'/'/'/'%'/'^' between them.
  */
 bool Parser::expression()
 {
@@ -155,7 +155,7 @@ bool Parser::expression()
         }
         else break;
 
-        // After a '+' or '-' we expect a valid term, otherwise we have a missing term.
+        // After a operator we expect a valid term, otherwise we have a missing term.
         // However, we may get a "false" term() if we got a number out of range.
         // So, we only change the error code if this is not that case (out of range).
         if ( not term() and m_result.type == ResultType::ILL_FORMED_INTEGER )
@@ -173,9 +173,9 @@ bool Parser::expression()
  *
  * Production rule is:
  * ```
- *  <term> := <integer>;
+ *  <term> := "(",<expr>,")" | <integer>;;
  * ```
- * A term is made of a single integer.
+ * A term is made of a single integer or a opening and ending scope with a expression between them.
  *
  * @return true if a term has been successfuly parsed from the input; false otherwise.
  */
@@ -221,20 +221,21 @@ bool Parser::term()
             m_tk_list.emplace_back( Token( token_str, Token::token_t::OPERAND ) );
         }
     }
-    else if( is_opscope() )
+    else if( is_opscope() ) // Caso seja uma abertura de escopo, tratamos devido a gramática.
     {
+        // Criamos uma string que recebe o escopo de abertura e o guarda na lista.
     	std::string token_str;
         std::copy( begin_token, m_it_curr_symb, std::back_inserter( token_str ) );
 
     	m_tk_list.emplace_back( Token(token_str, Token::token_t::OP_SCOPE));
 
-    	expression();
+    	expression(); // Chamamos a expressão para verificar se temos uma expressão válida dentro do escopo.
 
-    	if(accept(terminal_symbol_t::TS_ED))
+    	if(accept(terminal_symbol_t::TS_ED)) // Verifica se ouve o fechamento do escopo.
     	{
     		m_tk_list.emplace_back( Token(")", Token::token_t::ED_SCOPE));
     	}
-    	else
+    	else // Caso não haja fechamento do escopo, criamos o erro correspondente.
     	{
     		m_result =  ResultType( ResultType::MISSING_ED_SCOPE, 
                 std::distance( m_expr.begin(), m_it_curr_symb ) ) ;
@@ -246,9 +247,14 @@ bool Parser::term()
         m_result =  ResultType( ResultType::ILL_FORMED_INTEGER, 
                 std::distance( m_expr.begin(), m_it_curr_symb ) ) ;
     }
+    
     return m_result.type == ResultType::OK;
 }
 
+/// Verify if the actual character is a opening scope
+/*!
+ * @return true if we got a successful match; false otherwise.
+ */
 bool Parser::is_opscope()
 {
 	if(accept(terminal_symbol_t::TS_OP))
@@ -259,6 +265,10 @@ bool Parser::is_opscope()
 	return false;
 }
 
+/// Verify if the actual character is a ending scope
+/*!
+ * @return true if we got a successful match; false otherwise.
+ */
 bool Parser::is_edscope()
 {
 	if(accept(terminal_symbol_t::TS_ED))
@@ -274,9 +284,9 @@ bool Parser::is_edscope()
  *
  * Production rule is:
  * ```
- * <integer> := "0" | ["-"],<natural_number>;
+ * <integer> := "0" | {["-"]},<natural_number>;
  * ```
- * A integer might be a zero or a natural number, which, in turn, might begin with an unary minus.
+ * A integer might be a zero or a natural number, which, in turn, might begin with a sequence of unary minus.
  *
  * @return true if an integer has been successfuly parsed from the input; false otherwise.
  */
@@ -295,11 +305,11 @@ bool Parser::integer(std::string::iterator &begin_token)
    
    	if((minus%2) != 0)
    	{
-   		begin_token = m_it_curr_symb - 1;
+   		begin_token = m_it_curr_symb - 1; // Caso haja um numero ímpar de menos
    	}
    	else
    	{
-   		begin_token = m_it_curr_symb;
+   		begin_token = m_it_curr_symb; // Caso haja um número par de menos.
    	}
 
     return  natural_number();

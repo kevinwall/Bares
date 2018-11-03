@@ -46,9 +46,14 @@ Para compilar o projeto basta digitar o comando <br/>
 
 Na pasta principal do repositório e para excutar basta digitar <br/>
 
-**./bares arquivo-de-entrada arquivo-de-saída**  <br/>
+**./bares arquivo-de-entrada [arquivo-de-saída]**  <br/>
 
-Após isso, as soluções e erros se encontrarão no arquivo de saída.
+Caso o usuário não digite nenhum arquivo de saída, os resultados serão mostrados via cout. <br/>
+
+Caso nenhum arquivo seja digitado, o usuário entrara com os nomes dos arquivos de entrada e saída 
+dentro do algorítimo. <br/>
+
+E por fim, caso o usuário entre com mais parâmetros do que os especificados, a execução é parada.
 
 # Autoria #
 
